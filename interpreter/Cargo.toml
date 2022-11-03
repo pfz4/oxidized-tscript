@@ -1,0 +1,16 @@
+[package]
+name = "oxidized-tscript"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "oxidized_tscript_interpreter"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+lalrpop = "0.19.7"
+
+[dependencies]
+lalrpop-util = { version="0.19.7", features=["lexer"] }
+regex = "1"
