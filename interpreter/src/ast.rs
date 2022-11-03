@@ -41,7 +41,9 @@ pub struct Parameter {
 pub struct Class {
     identifier: Identifier,
     extends: Option<Name>,
-    items: BTreeMap<Visibility, ClassItem>,
+    public_items: Vec<ClassItem>,
+    private_items: Vec<ClassItem>,
+    protected_items: Vec<ClassItem>,
 }
 
 #[derive(Debug)]
@@ -57,13 +59,6 @@ pub struct Constructor {
     pub parameters: Vec<Parameter>,
     pub super_parameters: Vec<Expression>,
     pub body: Vec<BlockItem>,
-}
-
-#[derive(Debug)]
-pub enum Visibility {
-    Public,
-    Protected,
-    Private,
 }
 
 #[derive(Debug)]
@@ -91,7 +86,7 @@ pub enum Statement {
 #[derive(Debug)]
 pub struct Assignment {
     pub left_hand_side: LeftHandSide,
-    pub operation: AssignmentOperation,
+    pub operation: AssignmentOperator,
     pub expression: Expression,
 }
 
@@ -103,7 +98,7 @@ pub enum LeftHandSide {
 }
 
 #[derive(Debug)]
-pub enum AssignmentOperation {
+pub enum AssignmentOperator {
     Equals,
     Add,
     Sub,
@@ -176,8 +171,8 @@ pub struct Name(Vec<Identifier>);
 pub enum Expression {
     Literal(Literal),
     Group(Group),
-    UnaryOperator(UnaryOperator),
-    BinaryOperator(BinaryOperator),
+    UnaryOperation(UnaryOperation),
+    BinaryOperation(BinaryOperation),
     FunctionCall(FunctionCall),
     ItemAccess(ItemAccess),
     MemberAccess(MemberAccess),
@@ -210,10 +205,23 @@ pub enum Group {
 }
 
 #[derive(Debug)]
+pub struct UnaryOperation {
+    pub expression: Box<Expression>,
+    pub operator: UnaryOperator,
+}
+
+#[derive(Debug)]
 pub enum UnaryOperator {
     Not,
     Add,
     Sub,
+}
+
+#[derive(Debug)]
+pub struct BinaryOperation {
+    pub left: Box<Expression>,
+    pub right: Box<Expression>,
+    pub operator: BinaryOperator,
 }
 
 #[derive(Debug)]
