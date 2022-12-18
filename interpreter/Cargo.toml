@@ -12,5 +12,6 @@ name = "oxidized_tscript_interpreter"
 lalrpop = "0.19.7"
 
 [dependencies]
+interpreter-proc-macros = { path = "../interpreter-proc-macros" }
 lalrpop-util = { version="0.19.7", features=["lexer"] }
 regex = "1"

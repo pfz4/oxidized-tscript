@@ -1,7 +1,9 @@
-use std::collections::BTreeMap;
+use interpreter_proc_macros::Interpretable;
+
+use crate::{DeclarationStack, InterpreterError, InterpreterValue, VariableStack};
 
 #[derive(Debug)]
-pub struct Block(Vec<BlockItem>);
+pub struct Block(pub Vec<BlockItem>);
 
 #[derive(Debug)]
 pub enum BlockItem {
@@ -10,7 +12,7 @@ pub enum BlockItem {
     Directive(Directive),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Interpretable)]
 pub enum Declaration {
     Variable(Vec<Variable>),
     Function(Function),
@@ -39,11 +41,11 @@ pub struct Parameter {
 
 #[derive(Debug)]
 pub struct Class {
-    identifier: Identifier,
-    extends: Option<Name>,
-    public_items: Vec<ClassItem>,
-    private_items: Vec<ClassItem>,
-    protected_items: Vec<ClassItem>,
+    pub identifier: Identifier,
+    pub extends: Option<Name>,
+    pub public_items: Vec<ClassItem>,
+    pub private_items: Vec<ClassItem>,
+    pub protected_items: Vec<ClassItem>,
 }
 
 #[derive(Debug)]
@@ -69,7 +71,7 @@ pub struct Namespace {
 
 #[derive(Debug)]
 pub enum Statement {
-    Block(Vec<BlockItem>),
+    Block(Block),
     Assignment(Assignment),
     Expression(Expression),
     Condition(Condition),
@@ -141,7 +143,7 @@ pub struct TryCatch {
     pub do_catch: Box<Statement>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Interpretable)]
 pub enum Directive {
     Use(UseDirective),
 }
@@ -161,13 +163,13 @@ pub enum Import {
     },
 }
 
-#[derive(Debug)]
-pub struct Identifier(String); //TODO: _, <letter>, ()<letter/digit/_>)* that are not keywords
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+pub struct Identifier(pub String); //TODO: _, <letter>, (<letter/digit/_>)* that are not keywords
 
-#[derive(Debug)]
-pub struct Name(Vec<Identifier>);
+#[derive(Debug, PartialEq, Eq)]
+pub struct Name(pub Vec<Identifier>);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Expression {
     Literal(Literal),
     Group(Group),
@@ -179,7 +181,7 @@ pub enum Expression {
     Name(Name),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Literal {
     Null,
     Boolean(bool),
@@ -187,44 +189,38 @@ pub enum Literal {
     Real(f64),
     String(String),
     Array(Vec<Expression>),
-    Dictionary(Vec<(DictionaryKey, Expression)>),
-    Lambda, //TODO: later :)
+    Dictionary(Vec<(String, Expression)>), //Key is String or Identifier
+    Lambda,                                //TODO: later :)
 }
 
-#[derive(Debug)]
-pub enum DictionaryKey {
-    String(String),
-    Identifier(Identifier),
-}
-
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Group {
     Rounded(Box<Expression>),
     Square(Box<Expression>),
     Curly(Box<Expression>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UnaryOperation {
     pub expression: Box<Expression>,
     pub operator: UnaryOperator,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum UnaryOperator {
     Not,
     Add,
     Sub,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BinaryOperation {
     pub left: Box<Expression>,
     pub right: Box<Expression>,
     pub operator: BinaryOperator,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum BinaryOperator {
     Add,
     Sub,
@@ -245,25 +241,25 @@ pub enum BinaryOperator {
     Range,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FunctionCall {
     pub expression: Box<Expression>,
     pub arguments: Vec<FunctionCallArgument>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FunctionCallArgument {
     pub identifier: Option<Identifier>,
     pub expression: Expression,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ItemAccess {
     pub set: Box<Expression>,
     pub index: Box<Expression>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MemberAccess {
     pub expression: Box<Expression>,
     pub identifier: Identifier,
